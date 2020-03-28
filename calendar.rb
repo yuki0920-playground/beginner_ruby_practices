@@ -2,21 +2,57 @@
 
 require 'date'
 
-today = Date.today
-year = today.year
-month = today.month
-next_month = today.month + 1
+class CalendarData
+  def initialize(date)
+    @date = date
+  end
 
-start_date = Date.new(year, month, 1)
-end_date = Date.new(year, next_month, 1) - 1
-puts today.strftime('%B %Y').center(20)
-puts 'Su Mo Tu We Th Fr Sa'
+  def output
+    header + "\n" + body
+  end
 
-(start_date..end_date).each_with_object(Array.new(7, '  ')) do |date, result|
-  result[date.wday] = date.day.to_s.rjust(2, ' ')
-  if date.day == end_date.day
-    puts result[0..date.wday].join(' ')
-  elsif date.wday == 6
-    puts result.join(' ')
+  private
+
+  def header
+    sun_to_sat = 'Su Mo Tu We Th Fr Sa'
+    year_and_month = @date.strftime('%B %Y').center(sun_to_sat.size)
+    sun_to_sat + "\n" + year_and_month
+  end
+
+  def body
+    weeks_in_month.map { |week| week.join(' ') }.join("\n")
+  end
+
+  def weeks_in_month
+    week = 0
+    dates_in_month.each_with_object([]) do |date, result|
+      if result.empty?
+        result << Array.new(7, '  ')
+      elsif date.sunday?
+        result << []
+        week += 1
+      end
+      result[week][date.wday] = date.day.to_s.rjust(2, ' ')
+    end
+  end
+
+  def dates_in_month
+    (start_date..end_date)
+  end
+
+  def start_date
+    Date.new(year, month, 1)
+  end
+
+  def end_date
+    start_date.next_month.prev_day
+  end
+
+  def year
+    @date.year
+  end
+
+  def month
+    @date.month
   end
 end
